@@ -1,0 +1,31 @@
+{
+  "name": "reportes-seguridad-vina",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "server": "node server.js",
+    "dev:all": "concurrently -n \"SERVER,FRONTEND\" -c \"cyan,magenta\" -k \"npm run server\" \"npm run dev\"",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "leaflet": "^1.9.4",
+    "react-leaflet": "^4.2.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8",
+    "tailwindcss": "^3.3.6",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "concurrently": "^8.2.2"
+  }
+}
+
+
