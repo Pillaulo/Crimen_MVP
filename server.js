@@ -31,79 +31,18 @@ function ensureDataFile() {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
     
-    // Crear o reparar archivo si no existe o está vacío/corrupto
-    let needsInit = false;
-    
+    // Crear archivo si no existe
     if (!fs.existsSync(DATA_FILE)) {
-      needsInit = true;
-      console.log('📝 Archivo no existe, creando...');
-    } else {
-      // Verificar si el archivo está vacío o corrupto
-      const fileContent = fs.readFileSync(DATA_FILE, 'utf8').trim();
-      if (fileContent === '' || fileContent === '{}') {
-        needsInit = true;
-        console.log('⚠️ Archivo vacío o corrupto, reinicializando...');
-      } else {
-        // Intentar parsear para verificar que es válido
-        try {
-          JSON.parse(fileContent);
-        } catch (e) {
-          needsInit = true;
-          console.log('⚠️ Archivo JSON corrupto, reinicializando...');
-        }
-      }
-    }
-    
-    if (needsInit) {
       const initialData = {
         reports: [],
         nextId: 1
       };
       fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2), 'utf8');
-      console.log('✅ Archivo de datos inicializado:', DATA_FILE);
+      console.log('✅ Archivo de datos creado:', DATA_FILE);
     }
   } catch (error) {
     console.error('❌ Error al inicializar archivo de datos:', error);
     throw error;
-  }
-}
-
-// Función auxiliar para leer y validar el archivo JSON
-function readDataFile() {
-  try {
-    if (!fs.existsSync(DATA_FILE)) {
-      ensureDataFile();
-    }
-    
-    const fileContent = fs.readFileSync(DATA_FILE, 'utf8').trim();
-    
-    // Si está vacío, reinicializar
-    if (fileContent === '' || fileContent === '{}') {
-      console.log('⚠️ Archivo vacío detectado, reinicializando...');
-      ensureDataFile();
-      return { reports: [], nextId: 1 };
-    }
-    
-    const jsonData = JSON.parse(fileContent);
-    
-    // Validar estructura
-    if (!jsonData.reports || !Array.isArray(jsonData.reports)) {
-      console.log('⚠️ Estructura inválida, reinicializando...');
-      ensureDataFile();
-      return { reports: [], nextId: 1 };
-    }
-    
-    if (typeof jsonData.nextId !== 'number') {
-      jsonData.nextId = jsonData.reports.length > 0 
-        ? Math.max(...jsonData.reports.map(r => r.id || 0)) + 1 
-        : 1;
-    }
-    
-    return jsonData;
-  } catch (error) {
-    console.error('❌ Error al leer archivo, reinicializando...', error);
-    ensureDataFile();
-    return { reports: [], nextId: 1 };
   }
 }
 
@@ -115,7 +54,11 @@ ensureDataFile();
  */
 app.get('/api/reportes', (req, res) => {
   try {
-    const jsonData = readDataFile();
+    if (!fs.existsSync(DATA_FILE)) {
+      ensureDataFile();
+    }
+    const data = fs.readFileSync(DATA_FILE, 'utf8');
+    const jsonData = JSON.parse(data);
     res.json(jsonData);
   } catch (error) {
     console.error('Error al leer reportes:', error);
@@ -136,8 +79,14 @@ app.post('/api/reportes', (req, res) => {
       });
     }
 
-    // Leer datos actuales (con validación y reparación automática)
-    const jsonData = readDataFile();
+    // Asegurar que el archivo existe
+    if (!fs.existsSync(DATA_FILE)) {
+      ensureDataFile();
+    }
+
+    // Leer datos actuales
+    const data = fs.readFileSync(DATA_FILE, 'utf8');
+    const jsonData = JSON.parse(data);
     
     // Crear nuevo reporte
     const nuevoReporte = {
@@ -157,7 +106,6 @@ app.post('/api/reportes', (req, res) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(jsonData, null, 2), 'utf8');
     
     console.log(`✅ Reporte #${nuevoReporte.id} guardado exitosamente`);
-    console.log(`📊 Total de reportes: ${jsonData.reports.length}`);
     res.status(201).json(nuevoReporte);
   } catch (error) {
     console.error('Error al guardar reporte:', error);
@@ -170,7 +118,8 @@ app.post('/api/reportes', (req, res) => {
  */
 app.get('/api/reportes/:id', (req, res) => {
   try {
-    const jsonData = readDataFile();
+    const data = fs.readFileSync(DATA_FILE, 'utf8');
+    const jsonData = JSON.parse(data);
     const reporte = jsonData.reports.find(r => r.id === parseInt(req.params.id));
     
     if (reporte) {
@@ -181,6 +130,42 @@ app.get('/api/reportes/:id', (req, res) => {
   } catch (error) {
     console.error('Error al leer reporte:', error);
     res.status(500).json({ error: 'Error al leer el reporte' });
+  }
+});
+
+/**
+ * DELETE /api/reportes/:id - Eliminar un reporte por ID
+ */
+app.delete('/api/reportes/:id', (req, res) => {
+  try {
+    // Asegurar que el archivo existe
+    if (!fs.existsSync(DATA_FILE)) {
+      ensureDataFile();
+      return res.status(404).json({ error: 'Reporte no encontrado' });
+    }
+
+    // Leer datos actuales
+    const data = fs.readFileSync(DATA_FILE, 'utf8');
+    const jsonData = JSON.parse(data);
+    
+    const id = parseInt(req.params.id);
+    const index = jsonData.reports.findIndex(r => r.id === id);
+    
+    if (index === -1) {
+      return res.status(404).json({ error: 'Reporte no encontrado' });
+    }
+    
+    // Eliminar el reporte
+    jsonData.reports.splice(index, 1);
+    
+    // Guardar en archivo
+    fs.writeFileSync(DATA_FILE, JSON.stringify(jsonData, null, 2), 'utf8');
+    
+    console.log(`🗑️ Reporte #${id} eliminado exitosamente`);
+    res.status(200).json({ message: 'Reporte eliminado exitosamente', id });
+  } catch (error) {
+    console.error('Error al eliminar reporte:', error);
+    res.status(500).json({ error: 'Error al eliminar el reporte', details: error.message });
   }
 });
 

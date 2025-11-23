@@ -121,6 +121,38 @@ export async function getReportById(id) {
 }
 
 /**
+ * Elimina un reporte por su ID
+ * 
+ * @param {number} id - ID del reporte a eliminar
+ * @returns {Promise<boolean>} true si se eliminó exitosamente, false si no se encontró
+ */
+export async function deleteReport(id) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (response.status === 404) {
+      return false;
+    }
+
+    if (!response.ok) {
+      throw new Error('Error al eliminar el reporte');
+    }
+
+    // Actualizar cache
+    reportsCache = reportsCache.filter(r => r.id !== id);
+    return true;
+  } catch (error) {
+    console.error('Error al eliminar reporte:', error);
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      throw new Error('No se pudo conectar con el servidor. Asegúrate de que el servidor esté corriendo.');
+    }
+    throw error;
+  }
+}
+
+/**
  * Recarga los reportes desde el servidor
  * Útil cuando se necesita refrescar los datos
  * 
