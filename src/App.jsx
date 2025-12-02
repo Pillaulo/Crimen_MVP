@@ -1,4 +1,8 @@
-import Home from './pages/Home';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Dashboard from './pages/Dashboard';
+import Heatmap from './pages/Heatmap';
+import Reporte from './pages/Reporte';
 import './index.css';
 
 /**
@@ -12,9 +16,17 @@ import './index.css';
  */
 function App() {
   return (
-    <div className="App">
-      <Home />
-    </div>
+    <BrowserRouter>
+      <div className="App">
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/map" element={<Heatmap />} />
+          <Route path="/reporte" element={<Reporte />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
