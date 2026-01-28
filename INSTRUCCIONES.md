@@ -1,5 +1,23 @@
 # Instrucciones para ejecutar el proyecto
 
+🔧 Imprescindible
+
+ Node.js
+
+Este proyecto funciona con Node + npm.
+
+Instala Node.js LTS (recomendado)
+
+Al instalar Node, npm viene incluido
+
+👉 Puedes comprobarlo luego con:
+
+node -v
+npm -v
+
+
+Si ambos comandos responden con versiones, todo bien.
+
 ## Paso 1: Instalar dependencias (si no lo has hecho en CMD)
 
 ```bash
