@@ -1,6 +1,6 @@
 # Instrucciones para ejecutar el proyecto
 
-## Paso 1: Instalar dependencias (si no lo has hecho)
+## Paso 1: Instalar dependencias (si no lo has hecho en CMD)
 
 ```bash
 npm install
@@ -21,7 +21,7 @@ npm run server
 
 Deberías ver:
 ```
-🚀 Servidor API corriendo en http://localhost:3001
+🚀 Servidor API corriendo en http://localhost:3001 (o el puerto que indique)
 📁 Archivo de datos: ...
 ✅ Servidor listo para recibir peticiones
 ```
